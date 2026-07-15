@@ -38,6 +38,7 @@ import { HtmlContextMenu } from './html-context-menu';
 import { DisconnectedWarning } from './disconnected-warning';
 import { McpModal } from './mcp/mcp-modal';
 import { ZipExportDialog } from './view/zip-export-dialog';
+import { EventNoteDialog } from './view/event-note-dialog';
 
 const AppContainer = styled.div`
     display: flex;
@@ -295,6 +296,13 @@ class App extends React.Component<{
                 <ZipExportDialog
                     events={this.props.uiStore.zipExportRequest.events}
                     onClose={this.props.uiStore.closeZipExport}
+                />
+            }
+
+            { this.props.uiStore.noteEditRequest &&
+                <EventNoteDialog
+                    events={this.props.uiStore.noteEditRequest.events}
+                    onClose={this.props.uiStore.closeNoteEditor}
                 />
             }
 

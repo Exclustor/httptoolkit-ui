@@ -512,6 +512,21 @@ export class UiStore {
         this.zipExportRequest = undefined;
     }
 
+    @observable.ref
+    noteEditRequest: {
+        events: ReadonlyArray<ViewableEvent>;
+    } | undefined;
+
+    @action.bound
+    openNoteEditor(events: ReadonlyArray<ViewableEvent>) {
+        this.noteEditRequest = { events };
+    }
+
+    @action.bound
+    closeNoteEditor() {
+        this.noteEditRequest = undefined;
+    }
+
     // Actions for persisting view state when switching tabs
     @action.bound
     setViewScrollPosition(position: number | 'end') {

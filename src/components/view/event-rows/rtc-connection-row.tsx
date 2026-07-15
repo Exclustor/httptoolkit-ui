@@ -8,6 +8,7 @@ import { describeEventCategory } from '../../../model/events/categorization';
 import {
     TrafficEventListRow,
     RowPin,
+    RowTag,
     RowMarker,
     EventTypeColumn,
     Source,
@@ -24,7 +25,7 @@ export const RTCConnectionRow = observer((p: {
     event: RTCConnection
 }) => {
     const { event } = p;
-    const { category, pinned } = event;
+    const { category, pinned, tagColor, note } = event;
 
     return <TrafficEventListRow
         role="row"
@@ -42,6 +43,7 @@ export const RTCConnectionRow = observer((p: {
         {...p.rowProps}
     >
         <RowPin pinned={pinned}/>
+        <RowTag tagColor={tagColor} note={note} />
         <RowMarker role='gridcell' category={category} title={describeEventCategory(category)} />
         <EventTypeColumn role='gridcell'>
             { !event.closeState && <ConnectedSpinnerIcon /> } WebRTC

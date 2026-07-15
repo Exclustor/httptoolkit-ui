@@ -11,6 +11,7 @@ import { ViewEventContextMenuBuilder } from '../view-context-menu-builder';
 import {
     TrafficEventListRow,
     RowPin,
+    RowTag,
     RowMarker,
     EventTypeColumn,
     Source,
@@ -27,6 +28,8 @@ export const BuiltInApiRow = observer((p: {
     const {
         request,
         pinned,
+        tagColor,
+        note,
         category
     } = p.exchange;
     const api = p.exchange.api!; // Only shown for built-in APIs, so this must be set
@@ -60,6 +63,7 @@ export const BuiltInApiRow = observer((p: {
         onContextMenu={p.contextMenuBuilder.getContextMenuCallback(p.exchange)}
     >
         <RowPin pinned={pinned}/>
+        <RowTag tagColor={tagColor} note={note} />
         <RowMarker role='gridcell' category={category} title={describeEventCategory(category)} />
         <EventTypeColumn role='gridcell'>
             { api.service.shortName }: { apiOperationName }

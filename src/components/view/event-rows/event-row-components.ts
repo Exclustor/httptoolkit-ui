@@ -4,6 +4,7 @@ import {
     getSummaryColor,
     EventCategory
 } from '../../../model/events/categorization';
+import { TagColor, getTagColorValue } from '../../../model/events/tags';
 
 import { filterProps } from '../../component-utils';
 import { StatusCode } from '../../common/status-code';
@@ -125,6 +126,52 @@ export const RowPin = styled(
 
     ${(p: { pinned: boolean }) =>
         p.pinned
+        ? `
+            width: auto;
+            padding: 8px 7px;
+            && { margin-right: -3px; }
+        `
+        : `
+            padding: 8px 0;
+            width: 0 !important;
+            margin: 0 !important;
+
+            > path {
+                display: none;
+            }
+        `
+    }
+`;
+
+export const RowTag = styled(
+    filterProps(Icon, 'tagColor', 'note')
+).attrs((p: { tagColor?: TagColor, note: string }) => ({
+    icon: ['fas', 'tag'],
+    title: p.tagColor || p.note
+        ? [
+            p.tagColor ? `Tagged ${p.tagColor}` : undefined,
+            p.note ? `Note: ${p.note}` : undefined
+        ].filter(Boolean).join('\n')
+        : ''
+}))`
+    font-size: 90%;
+    box-sizing: content-box;
+    background-color: ${p => p.theme.containerBackground};
+
+    color: ${(p: { tagColor?: TagColor }) =>
+        p.tagColor
+        ? getTagColorValue(p.tagColor)
+        // Notes without a colour still get a marker, in neutral grey:
+        : getTagColorValue('grey')
+    };
+
+    /* Without this, 0 width tags create a large & invisible but still clickable icon */
+    overflow: hidden;
+
+    transition: width 0.1s, padding 0.1s, margin 0.1s;
+
+    ${(p: { tagColor?: TagColor, note: string }) =>
+        p.tagColor || p.note
         ? `
             width: auto;
             padding: 8px 7px;

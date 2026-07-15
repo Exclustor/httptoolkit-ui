@@ -12,6 +12,7 @@ import {
 } from '../../types';
 
 import { getEventCategory } from './categorization';
+import { TagColor } from './tags';
 
 export abstract class HTKEventBase {
 
@@ -51,5 +52,18 @@ export abstract class HTKEventBase {
     private _pinned: boolean = false;
     public get pinned(): boolean { return this._pinned; }
     public set pinned(value: boolean) { this._pinned = value; }
+
+    // A colour tag, manually applied to this event by the user in the UI.
+    // Unrelated to `tags` on HTTP exchanges, which are set by the server.
+    @observable
+    private _tagColor: TagColor | undefined = undefined;
+    public get tagColor(): TagColor | undefined { return this._tagColor; }
+    public set tagColor(value: TagColor | undefined) { this._tagColor = value; }
+
+    // A free-text note, manually attached to this event by the user in the UI.
+    @observable
+    private _note: string = '';
+    public get note(): string { return this._note; }
+    public set note(value: string) { this._note = value; }
 
 }

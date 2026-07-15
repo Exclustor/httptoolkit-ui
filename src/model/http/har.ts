@@ -30,6 +30,7 @@ import { UI_VERSION } from '../../services/service-versions';
 import { getStatusMessage } from './http-docs';
 import { StreamMessage } from '../events/stream-message';
 import { QueuedEvent } from '../events/events-store';
+import { TagColor, isTagColor } from '../events/tags';
 import { parseCookieHeader, parseSetCookieHeader } from './cookies';
 
 // We only include request/response bodies that are under 500KB
@@ -81,6 +82,8 @@ export interface HarEntry extends HarFormat.Entry {
         timestamp?: number;
     } | 'aborted'
     _pinned?: true;
+    _tagColor?: string;
+    _note?: string;
 }
 
 export interface HarWebSocketMessage {
@@ -441,6 +444,8 @@ async function generateHarHttpEntry(
             receive: Math.max(receiveDuration, 0)
         },
         _pinned: exchange.pinned || undefined,
+        _tagColor: exchange.tagColor,
+        _note: exchange.note || undefined,
 
         ...(exchange.isWebSocket() ? {
             _resourceType: 'websocket',
@@ -508,6 +513,7 @@ function generateHarTlsError(event: FailedTlsConnection): HarTlsErrorEntry {
 export interface ParsedHar {
     events: QueuedEvent[];
     pinnedIds: string[];
+    tagDataById: { [id: string]: { color?: TagColor, note?: string } };
 };
 
 const sumTimings = (
@@ -527,6 +533,7 @@ export async function parseHar(harContents: unknown): Promise<ParsedHar> {
 
     const events: QueuedEvent[] = [];
     const pinnedIds: string[] = []
+    const tagDataById: ParsedHar['tagDataById'] = {};
 
     har.log.entries
     .sort((a, b) => {
@@ -622,6 +629,15 @@ export async function parseHar(harContents: unknown): Promise<ParsedHar> {
         }
 
         if (entry._pinned) pinnedIds.push(id);
+
+        if (isTagColor(entry._tagColor) || entry._note) {
+            tagDataById[id] = {
+                color: isTagColor(entry._tagColor)
+                    ? entry._tagColor
+                    : undefined,
+                note: entry._note
+            };
+        }
     });
 
     if (har.log._tlsErrors) {
@@ -643,7 +659,7 @@ export async function parseHar(harContents: unknown): Promise<ParsedHar> {
         })));
     }
 
-    return { events, pinnedIds };
+    return { events, pinnedIds, tagDataById };
 }
 
 // Mutatively cleans & returns the HAR, to tidy up irrelevant but potentially

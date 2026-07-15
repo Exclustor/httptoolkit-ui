@@ -6,6 +6,7 @@ import { ApiDetector } from "./api-detector";
 
 import { StepClassKey } from "../rules/rules";
 import { HTKEventBase } from "../events/event-base";
+import { TagColor } from "../events/tags";
 
 import { HttpExchange, HttpVersion } from "./http-exchange";
 import { UpstreamHttpExchange } from "./upstream-exchange";
@@ -128,6 +129,12 @@ export abstract class HttpExchangeViewBase extends HTKEventBase implements HttpE
 
     get pinned() { return this.downstream.pinned; }
     set pinned(value: boolean) { this.downstream.pinned = value; }
+
+    get tagColor() { return this.downstream.tagColor; }
+    set tagColor(value: TagColor | undefined) { this.downstream.tagColor = value; }
+
+    get note() { return this.downstream.note; }
+    set note(value: string) { this.downstream.note = value; }
 
     get hideErrors() { return this.downstream.hideErrors; }
     set hideErrors(value: boolean) { this.downstream.hideErrors = value; }

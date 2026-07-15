@@ -7,6 +7,7 @@ import { stringToBuffer } from '../../util/buffer';
 import { getStatusDocs, METHOD_NAMES } from '../http/http-docs';
 import { getReadableSize } from '../../util/buffer';
 import { EventCategories } from '../events/categorization';
+import { TAG_COLOR_NAMES } from '../events/tags';
 import { WebSocketStream } from '../websockets/websocket-stream';
 
 import {
@@ -109,7 +110,8 @@ export class StringFilter extends Filter {
     matches(event: ViewableEvent): boolean {
         if (this.filter === '') return true;
         const filter = this.filter.toLocaleLowerCase();
-        return event.searchIndex.includes(filter);
+        return event.searchIndex.includes(filter) ||
+            (!!event.note && event.note.toLocaleLowerCase().includes(filter));
     }
 
     toString() {
@@ -413,6 +415,75 @@ class PinnedFilter extends Filter {
 
     toString() {
         return `Pinned`;
+    }
+}
+
+class TaggedFilter extends Filter {
+
+    static filterSyntax = [new FixedStringSyntax("tagged")] as const;
+
+    static filterName = "tagged";
+
+    static filterDescription(value: string) {
+        return "exchanges with a tag colour or note";
+    }
+
+    matches(event: ViewableEvent): boolean {
+        return event.tagColor !== undefined || !!event.note;
+    }
+
+    toString() {
+        return `Tagged`;
+    }
+}
+
+class TagFilter extends Filter {
+
+    static filterSyntax = [
+        new FixedStringSyntax("tag"),
+        new StringOptionsSyntax<EqualityOperation>([
+            "=",
+            "!="
+        ]),
+        new StringOptionsSyntax(TAG_COLOR_NAMES)
+    ] as const;
+
+    static filterName = "tag";
+
+    static filterDescription(value: string) {
+        const [, op, color] = tryParseFilter(TagFilter, value);
+
+        if (!op) {
+            return "exchanges tagged with a given colour";
+        } else if (!color) {
+            return `exchanges ${op === '=' ? 'tagged' : 'not tagged'} with a given colour`;
+        } else {
+            return op === '='
+                ? `exchanges tagged ${color}`
+                : `exchanges not tagged ${color}`;
+        }
+    }
+
+    private expectedColor: string;
+    private op: EqualityOperation;
+    private predicate: (color: string | undefined, expectedColor: string) => boolean;
+
+    constructor(filter: string) {
+        super(filter);
+        const [, op, colorString] = parseFilter(TagFilter, filter);
+        this.op = op;
+        this.predicate = operations[this.op];
+        this.expectedColor = colorString;
+    }
+
+    matches(event: ViewableEvent): boolean {
+        return this.predicate(event.tagColor, this.expectedColor);
+    }
+
+    toString() {
+        return this.op === '='
+            ? `Tagged ${this.expectedColor}`
+            : `Not tagged ${this.expectedColor}`;
     }
 }
 
@@ -1409,6 +1480,8 @@ const BaseSearchFilterClasses: FilterClass[] = [
     AbortedFilter,
     ErrorFilter,
     PinnedFilter,
+    TaggedFilter,
+    TagFilter,
     CategoryFilter,
     PortFilter,
     ProtocolFilter,

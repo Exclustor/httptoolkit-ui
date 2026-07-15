@@ -17,6 +17,7 @@ import {
 } from '../../model/ui/snippet-formats';
 import { ContextMenuItem } from '../../model/ui/context-menu';
 import { Filter, HostnameFilter } from '../../model/filters/search-filters';
+import { TagColor, TAG_COLOR_NAMES } from '../../model/events/tags';
 
 export class ViewEventContextMenuBuilder {
 
@@ -35,6 +36,37 @@ export class ViewEventContextMenuBuilder {
             onAddFilter: (filter: Filter) => void
         }
     ) {}
+
+    // Tagging & note items shown in every single-event menu. The menu data
+    // is the event itself, so these apply to whichever event was clicked:
+    private buildSingleEventTagItems(event: CollectedEvent): Array<ContextMenuItem<any>> {
+        return [
+            {
+                type: 'submenu',
+                label: 'Tag Colour',
+                items: [
+                    ...TAG_COLOR_NAMES.map((color: TagColor) => ({
+                        type: 'option' as const,
+                        label: (event.tagColor === color ? '✔ ' : '') + _.startCase(color),
+                        callback: action((data: CollectedEvent) => { data.tagColor = color; })
+                    })),
+                    ...(event.tagColor ? [
+                        { type: 'separator' as const },
+                        {
+                            type: 'option' as const,
+                            label: 'Clear Tag',
+                            callback: action((data: CollectedEvent) => { data.tagColor = undefined; })
+                        }
+                    ] : [])
+                ]
+            },
+            {
+                type: 'option',
+                label: event.note ? 'Edit Note...' : 'Add Note...',
+                callback: (data: CollectedEvent) => this.uiStore.openNoteEditor([data])
+            }
+        ];
+    }
 
     getContextMenuCallback(event: CollectedEvent) {
         return (mouseEvent: React.MouseEvent) => {
@@ -62,6 +94,32 @@ export class ViewEventContextMenuBuilder {
                 type: 'option',
                 label: 'Toggle Pinning',
                 callback: () => this.callbacks.onPin()
+            },
+            {
+                type: 'submenu',
+                label: `Tag ${count} Event${count !== 1 ? 's' : ''}`,
+                items: [
+                    ...TAG_COLOR_NAMES.map((color: TagColor) => ({
+                        type: 'option' as const,
+                        label: _.startCase(color),
+                        callback: action(() =>
+                            selectedEvents.forEach((e) => { e.tagColor = color; })
+                        )
+                    })),
+                    { type: 'separator' as const },
+                    {
+                        type: 'option' as const,
+                        label: 'Clear Tags',
+                        callback: action(() =>
+                            selectedEvents.forEach((e) => { e.tagColor = undefined; })
+                        )
+                    }
+                ]
+            },
+            {
+                type: 'option',
+                label: `Add Note to ${count} Event${count !== 1 ? 's' : ''}...`,
+                callback: () => this.uiStore.openNoteEditor(selectedEvents)
             },
             ...(httpCount > 0 ? [{
                 type: 'option' as const,
@@ -96,6 +154,7 @@ export class ViewEventContextMenuBuilder {
                 label: 'Toggle Pinning',
                 callback: action((data: HttpExchangeView) => { data.pinned = !data.pinned; })
             },
+            ...this.buildSingleEventTagItems(event),
             {
                 type: 'submenu',
                 label: 'Filter traffic like this',
@@ -207,6 +266,7 @@ export class ViewEventContextMenuBuilder {
                 label: 'Toggle Pinning',
                 callback: action((data: CollectedEvent) => { data.pinned = !data.pinned; })
             },
+            ...this.buildSingleEventTagItems(event),
             {
                 type: 'option',
                 label: 'Delete',

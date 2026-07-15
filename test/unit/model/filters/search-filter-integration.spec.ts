@@ -76,6 +76,8 @@ describe("Search filter model integration test:", () => {
                 { index: 0, showAs: "aborted" },
                 { index: 0, showAs: "errored" },
                 { index: 0, showAs: "pinned" },
+                { index: 0, showAs: "tagged" },
+                { index: 0, showAs: "tag" },
                 { index: 0, showAs: "category" },
                 { index: 0, showAs: "port" },
                 { index: 0, showAs: "protocol" },
@@ -107,6 +109,8 @@ describe("Search filter model integration test:", () => {
                 "requests & connections which failed to cleanly complete",
                 "requests that weren't transmitted successfully",
                 "exchanges that are pinned",
+                "exchanges with a tag colour or note",
+                "exchanges tagged with a given colour",
                 "exchanges by their general category",
                 "requests sent to a given port",
                 "traffic using a specific protocol like HTTPS, or WebSockets",
@@ -355,6 +359,77 @@ describe("Search filter model integration test:", () => {
             expect(matchedEvents.length).to.equal(2);
             expect((matchedEvents[0] as SuccessfulExchange).response.statusCode).to.equal(500);
             expect((matchedEvents[1] as FailedTlsConnection).failureCause).to.equal('cert-rejected');
+        });
+    });
+
+    describe("Tag filters", () => {
+        it("should correctly filter for events tagged with any colour or note", () => {
+            const filter = createFilter("tagged");
+
+            const exampleEvents = [
+                getExchangeData({ statusCode: 200 }),
+                getExchangeData({ statusCode: 404 }),
+                getExchangeData({ statusCode: 500 }),
+                getFailedTls()
+            ];
+
+            exampleEvents[1].tagColor = 'red';
+            exampleEvents[2].note = 'Very interesting';
+
+            const matchedEvents = exampleEvents.filter(e => filter.matches(e));
+            expect(matchedEvents.length).to.equal(2);
+            expect((matchedEvents[0] as SuccessfulExchange).response.statusCode).to.equal(404);
+            expect((matchedEvents[1] as SuccessfulExchange).response.statusCode).to.equal(500);
+        });
+
+        it("should correctly filter for a given tag colour", () => {
+            const filter = createFilter("tag=red");
+
+            const exampleEvents = [
+                getExchangeData({ statusCode: 200 }),
+                getExchangeData({ statusCode: 404 }),
+                getExchangeData({ statusCode: 500 })
+            ];
+
+            exampleEvents[1].tagColor = 'red';
+            exampleEvents[2].tagColor = 'blue';
+
+            const matchedEvents = exampleEvents.filter(e => filter.matches(e));
+            expect(matchedEvents.length).to.equal(1);
+            expect((matchedEvents[0] as SuccessfulExchange).response.statusCode).to.equal(404);
+        });
+
+        it("should correctly filter out a given tag colour", () => {
+            const filter = createFilter("tag!=red");
+
+            const exampleEvents = [
+                getExchangeData({ statusCode: 200 }),
+                getExchangeData({ statusCode: 404 }),
+                getExchangeData({ statusCode: 500 })
+            ];
+
+            exampleEvents[1].tagColor = 'red';
+            exampleEvents[2].tagColor = 'blue';
+
+            const matchedEvents = exampleEvents.filter(e => filter.matches(e));
+            expect(matchedEvents.length).to.equal(2);
+            expect((matchedEvents[0] as SuccessfulExchange).response.statusCode).to.equal(200);
+            expect((matchedEvents[1] as SuccessfulExchange).response.statusCode).to.equal(500);
+        });
+
+        it("should match note content in free-text searches", () => {
+            const filter = new StringFilter("interesting");
+
+            const exampleEvents = [
+                getExchangeData({ statusCode: 200, path: '/dull' }),
+                getExchangeData({ statusCode: 404, path: '/other' })
+            ];
+
+            exampleEvents[1].note = 'Very Interesting!';
+
+            const matchedEvents = exampleEvents.filter(e => filter.matches(e));
+            expect(matchedEvents.length).to.equal(1);
+            expect((matchedEvents[0] as SuccessfulExchange).response.statusCode).to.equal(404);
         });
     });
 
@@ -1327,6 +1402,8 @@ describe("Search filter model integration test:", () => {
                 { index: 3, showAs: "aborted" },
                 { index: 3, showAs: "errored" },
                 { index: 3, showAs: "pinned" },
+                { index: 3, showAs: "tagged" },
+                { index: 3, showAs: "tag" },
                 { index: 3, showAs: "category" },
                 { index: 3, showAs: "port" },
                 { index: 3, showAs: "protocol" },
@@ -1382,6 +1459,8 @@ describe("Search filter model integration test:", () => {
                 { index: 14, showAs: "aborted)" },
                 { index: 14, showAs: "errored)" },
                 { index: 14, showAs: "pinned)" },
+                { index: 14, showAs: "tagged)" },
+                { index: 14, showAs: "tag" },
                 { index: 14, showAs: "category" },
                 { index: 14, showAs: "port" },
                 { index: 14, showAs: "protocol" },
@@ -1513,6 +1592,8 @@ describe("Search filter model integration test:", () => {
                 { index: 4, showAs: "aborted)" },
                 { index: 4, showAs: "errored)" },
                 { index: 4, showAs: "pinned)" },
+                { index: 4, showAs: "tagged)" },
+                { index: 4, showAs: "tag" },
                 { index: 4, showAs: "category" },
                 { index: 4, showAs: "port" },
                 { index: 4, showAs: "protocol" },
