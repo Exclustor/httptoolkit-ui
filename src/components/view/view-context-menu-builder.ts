@@ -17,6 +17,7 @@ import {
 } from '../../model/ui/snippet-formats';
 import { ContextMenuItem } from '../../model/ui/context-menu';
 import { Filter, HostnameFilter } from '../../model/filters/search-filters';
+import { PinColor, PIN_COLOR_NAMES } from '../../model/events/pin-colors';
 
 export class ViewEventContextMenuBuilder {
 
@@ -35,6 +36,26 @@ export class ViewEventContextMenuBuilder {
             onAddFilter: (filter: Filter) => void
         }
     ) {}
+
+    private buildPinColorSubmenu(
+        label: string,
+        events: ReadonlyArray<CollectedEvent>
+    ): ContextMenuItem<any> {
+        const pinAll = (color?: PinColor) => action(() => events.forEach((e) => e.pin(color)));
+
+        return {
+            type: 'submenu',
+            label,
+            items: [
+                { type: 'option', label: 'Default', callback: pinAll() },
+                ...PIN_COLOR_NAMES.map((color) => ({
+                    type: 'option' as const,
+                    label: _.startCase(color),
+                    callback: pinAll(color)
+                }))
+            ]
+        };
+    }
 
     getContextMenuCallback(event: CollectedEvent) {
         return (mouseEvent: React.MouseEvent) => {
@@ -63,6 +84,7 @@ export class ViewEventContextMenuBuilder {
                 label: 'Toggle Pinning',
                 callback: () => this.callbacks.onPin()
             },
+            this.buildPinColorSubmenu(`Pin ${count} Event${count !== 1 ? 's' : ''}`, selectedEvents),
             ...(httpCount > 0 ? [{
                 type: 'option' as const,
                 enabled: isPaidUser,
@@ -96,6 +118,7 @@ export class ViewEventContextMenuBuilder {
                 label: 'Toggle Pinning',
                 callback: action((data: HttpExchangeView) => { data.pinned = !data.pinned; })
             },
+            this.buildPinColorSubmenu('Pin Colour', [event]),
             {
                 type: 'submenu',
                 label: 'Filter traffic like this',
@@ -207,6 +230,7 @@ export class ViewEventContextMenuBuilder {
                 label: 'Toggle Pinning',
                 callback: action((data: CollectedEvent) => { data.pinned = !data.pinned; })
             },
+            this.buildPinColorSubmenu('Pin Colour', [event]),
             {
                 type: 'option',
                 label: 'Delete',

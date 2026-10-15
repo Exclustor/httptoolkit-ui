@@ -358,6 +358,47 @@ describe("Search filter model integration test:", () => {
         });
     });
 
+    describe("Pinned filters", () => {
+        it("should correctly filter for pinned events of any colour", () => {
+            // Not createFilter(), as bare 'pinned' has multiple full-match
+            // suggestions (one per pin colour):
+            const PinnedFilterClass = FilterClasses.find(c => c.filterName === "pinned")!;
+            const filter = new PinnedFilterClass("pinned") as Filter;
+
+            const exampleEvents = [
+                getExchangeData({ statusCode: 200 }),
+                getExchangeData({ statusCode: 404 }),
+                getExchangeData({ statusCode: 500 })
+            ];
+
+            exampleEvents[1].pin();
+            exampleEvents[2].pin('red');
+
+            const matchedEvents = exampleEvents.filter(e => filter.matches(e));
+            expect(matchedEvents.length).to.equal(2);
+            expect((matchedEvents[0] as SuccessfulExchange).response.statusCode).to.equal(404);
+            expect((matchedEvents[1] as SuccessfulExchange).response.statusCode).to.equal(500);
+        });
+
+        it("should correctly filter for a specific pin colour", () => {
+            const filter = createFilter("pinned=red");
+
+            const exampleEvents = [
+                getExchangeData({ statusCode: 200 }),
+                getExchangeData({ statusCode: 404 }),
+                getExchangeData({ statusCode: 500 })
+            ];
+
+            exampleEvents[0].pin();
+            exampleEvents[1].pin('red');
+            exampleEvents[2].pin('blue');
+
+            const matchedEvents = exampleEvents.filter(e => filter.matches(e));
+            expect(matchedEvents.length).to.equal(1);
+            expect((matchedEvents[0] as SuccessfulExchange).response.statusCode).to.equal(404);
+        });
+    });
+
     describe("Method filters", () => {
         it("should correctly filter for the given method", () => {
             const filter = createFilter("method=POST");
@@ -1381,7 +1422,7 @@ describe("Search filter model integration test:", () => {
                 { index: 14, showAs: "pending)" },
                 { index: 14, showAs: "aborted)" },
                 { index: 14, showAs: "errored)" },
-                { index: 14, showAs: "pinned)" },
+                { index: 14, showAs: "pinned" },
                 { index: 14, showAs: "category" },
                 { index: 14, showAs: "port" },
                 { index: 14, showAs: "protocol" },
@@ -1512,7 +1553,7 @@ describe("Search filter model integration test:", () => {
                 { index: 4, showAs: "pending)" },
                 { index: 4, showAs: "aborted)" },
                 { index: 4, showAs: "errored)" },
-                { index: 4, showAs: "pinned)" },
+                { index: 4, showAs: "pinned" },
                 { index: 4, showAs: "category" },
                 { index: 4, showAs: "port" },
                 { index: 4, showAs: "protocol" },

@@ -1,4 +1,4 @@
-import { observable, computed } from 'mobx';
+import { observable, computed, action } from 'mobx';
 
 import {
     FailedTlsConnection,
@@ -12,6 +12,7 @@ import {
 } from '../../types';
 
 import { getEventCategory } from './categorization';
+import { PinColor } from './pin-colors';
 
 export abstract class HTKEventBase {
 
@@ -50,6 +51,22 @@ export abstract class HTKEventBase {
     @observable
     private _pinned: boolean = false;
     public get pinned(): boolean { return this._pinned; }
-    public set pinned(value: boolean) { this._pinned = value; }
+    public set pinned(value: boolean) {
+        this._pinned = value;
+        // Unpinning an event always resets its pin to the default colour:
+        if (!value) this._pinColor = undefined;
+    }
+
+    // Undefined for pins in the default colour:
+    @observable
+    private _pinColor: PinColor | undefined = undefined;
+    public get pinColor(): PinColor | undefined { return this._pinColor; }
+    public set pinColor(value: PinColor | undefined) { this._pinColor = value; }
+
+    @action
+    pin(color?: PinColor) {
+        this.pinned = true;
+        this.pinColor = color;
+    }
 
 }

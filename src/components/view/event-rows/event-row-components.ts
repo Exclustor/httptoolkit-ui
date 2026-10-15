@@ -1,9 +1,11 @@
-import { styled } from '../../../styles';
+import { styled, css } from '../../../styles';
 import { Icon } from '../../../icons';
 import {
     getSummaryColor,
     EventCategory
 } from '../../../model/events/categorization';
+
+import { PinColor } from '../../../model/events/pin-colors';
 
 import { filterProps } from '../../component-utils';
 import { StatusCode } from '../../common/status-code';
@@ -109,21 +111,33 @@ export const TlsListRow = styled(EventListRow)`
 `;
 
 export const RowPin = styled(
-    filterProps(Icon, 'pinned')
-).attrs((p: { pinned: boolean }) => ({
+    filterProps(Icon, 'pinned', 'pinColor')
+).attrs((p: { pinned: boolean, pinColor?: PinColor }) => ({
     icon: ['fas', 'thumbtack'],
-    title: p.pinned ? "This exchange is pinned, and won't be deleted by default" : ''
+    title: p.pinned
+        ? `This exchange is pinned${
+            p.pinColor ? ` ${p.pinColor}` : ''
+        }, and won't be deleted by default`
+        : ''
 }))`
     font-size: 90%;
     box-sizing: content-box;
     background-color: ${p => p.theme.containerBackground};
+
+    /* Selected rows recolour everything inside them, icon paths included (see EventListRow).
+       Pin colours are picked by the user though, so this colours the path to outrank that: */
+    ${({ pinColor }: { pinColor?: PinColor }) => pinColor && css`
+        && path {
+            fill: ${({ theme }) => theme.pinColors[pinColor]};
+        }
+    `}
 
     /* Without this, 0 width pins create a large & invisible but still clickable icon */
     overflow: hidden;
 
     transition: width 0.1s, padding 0.1s, margin 0.1s;
 
-    ${(p: { pinned: boolean }) =>
+    ${(p: { pinned: boolean, pinColor?: PinColor }) =>
         p.pinned
         ? `
             width: auto;

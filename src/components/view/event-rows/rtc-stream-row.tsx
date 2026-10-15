@@ -26,7 +26,7 @@ export const RTCStreamRow = observer((p: {
     event: RTCStream
 }) => {
     const { event } = p;
-    const { category, pinned } = event;
+    const { category, pinned, pinColor } = event;
 
     return <TrafficEventListRow
         role="row"
@@ -57,7 +57,7 @@ export const RTCStreamRow = observer((p: {
         }
         {...p.rowProps}
     >
-        <RowPin pinned={pinned}/>
+        <RowPin pinned={pinned} pinColor={pinColor}/>
         <RowMarker role='gridcell' category={category} title={describeEventCategory(category)} />
         <EventTypeColumn role='gridcell'>
             { !event.closeState && <ConnectedSpinnerIcon /> } WebRTC {

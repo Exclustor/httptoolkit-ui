@@ -30,6 +30,7 @@ import { UI_VERSION } from '../../services/service-versions';
 import { getStatusMessage } from './http-docs';
 import { StreamMessage } from '../events/stream-message';
 import { QueuedEvent } from '../events/events-store';
+import { PinColor, isPinColor } from '../events/pin-colors';
 import { parseCookieHeader, parseSetCookieHeader } from './cookies';
 
 // We only include request/response bodies that are under 500KB
@@ -80,7 +81,9 @@ export interface HarEntry extends HarFormat.Entry {
         reason?: string;
         timestamp?: number;
     } | 'aborted'
-    _pinned?: true;
+    // True for a default pin, or a colour name for a coloured pin. Old
+    // exports/importers just use/see `true` here, so this stays compatible:
+    _pinned?: true | string;
 }
 
 const compareHarEntryStartTimes = (
@@ -448,7 +451,9 @@ async function generateHarHttpEntry(
             wait: Math.max(waitDuration, 0),
             receive: Math.max(receiveDuration, 0)
         },
-        _pinned: exchange.pinned || undefined,
+        _pinned: exchange.pinned
+            ? (exchange.pinColor ?? true)
+            : undefined,
 
         ...(exchange.isWebSocket() ? {
             _resourceType: 'websocket',
@@ -516,6 +521,7 @@ function generateHarTlsError(event: FailedTlsConnection): HarTlsErrorEntry {
 export interface ParsedHar {
     events: QueuedEvent[];
     pinnedIds: string[];
+    pinColorsById: { [id: string]: PinColor };
 };
 
 const sumTimings = (
@@ -535,6 +541,7 @@ export async function parseHar(harContents: unknown): Promise<ParsedHar> {
 
     const events: QueuedEvent[] = [];
     const pinnedIds: string[] = []
+    const pinColorsById: ParsedHar['pinColorsById'] = {};
 
     har.log.entries
     .sort(compareHarEntryStartTimes)
@@ -625,7 +632,12 @@ export async function parseHar(harContents: unknown): Promise<ParsedHar> {
             }
         }
 
-        if (entry._pinned) pinnedIds.push(id);
+        if (entry._pinned) {
+            pinnedIds.push(id);
+            if (isPinColor(entry._pinned)) {
+                pinColorsById[id] = entry._pinned;
+            }
+        }
     });
 
     if (har.log._tlsErrors) {
@@ -647,7 +659,7 @@ export async function parseHar(harContents: unknown): Promise<ParsedHar> {
         })));
     }
 
-    return { events, pinnedIds };
+    return { events, pinnedIds, pinColorsById };
 }
 
 // Mutatively cleans & returns the HAR, to tidy up irrelevant but potentially

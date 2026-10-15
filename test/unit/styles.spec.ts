@@ -3,6 +3,7 @@ import * as polished from 'polished';
 import * as styles from "../../src/styles";
 import { EventCategories, getMethodColor, getSummaryColor } from "../../src/model/events/categorization";
 import { MethodNames } from "../../src/model/http/methods";
+import { PIN_COLOR_NAMES } from "../../src/model/events/pin-colors";
 import {
     getTextColor,
     getBackgroundColor
@@ -139,6 +140,19 @@ import { expect } from '../test-setup';
                 expect(contrast).to.be.greaterThan(lowerContrastTarget,
                     `Contrast for ${mainColor}/${bgColor} was only ${contrast}`
                 );
+            });
+
+            PIN_COLOR_NAMES.forEach((pinColor) => {
+                it(`should have sufficient ${pinColor} pin contrast`, () => {
+                    const mainColor = theme.pinColors[pinColor];
+                    const bgColor = theme.containerBackground; // Pins are shown in a container-coloured box
+
+                    const contrast = polished.getContrast(mainColor, bgColor);
+                    // Lower target as pins are icons (so generally only require 3:1)
+                    expect(contrast).to.be.greaterThan(lowerContrastTarget,
+                        `Contrast for ${mainColor}/${bgColor} was only ${contrast}`
+                    );
+                });
             });
 
         });

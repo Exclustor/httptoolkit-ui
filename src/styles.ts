@@ -91,6 +91,16 @@ export const lightTheme = {
     containerWatermark: mediumGrey,
     containerBorder: lightGrey,
 
+    pinColors: {
+        red: '#ce3939',
+        orange: '#d35900',
+        yellow: '#9a6700',
+        green: '#3c8f65',
+        blue: '#188ab1',
+        purple: '#6e40aa',
+        pink: '#dd3a96'
+    },
+
     // These are the same as the standard defaults
     linkColor: '#0000EE',
     visitedLinkColor: '#551A8B',
@@ -150,6 +160,16 @@ export const darkTheme = {
     containerBackground: inkGrey,
     containerWatermark: lightGrey,
     containerBorder: black,
+
+    pinColors: {
+        red: '#d65959',
+        orange: '#ff8c38',
+        yellow: '#e9f05b',
+        green: '#4caf7d',
+        blue: '#2fb4e0',
+        purple: '#976fc6',
+        pink: '#df429a'
+    },
 
     linkColor: '#8699ff',
     visitedLinkColor: '#ac7ada',
@@ -233,6 +253,16 @@ export const highContrastTheme = {
     containerBackground: darkGrey,
     containerWatermark: '#a0a0b0',
     containerBorder: '#000000',
+
+    pinColors: {
+        red: '#e18585',
+        orange: '#ff8c38',
+        yellow: '#e9f05b',
+        green: '#4caf7d',
+        blue: '#2fb4e0',
+        purple: '#b293d2',
+        pink: '#ec76b4'
+    },
 
     linkColor: '#8699ff',
     visitedLinkColor: '#ac7ada',

@@ -760,7 +760,7 @@ export class EventsStore {
     }
 
     async loadFromHar(harContents: {}) {
-        const { events, pinnedIds } = await parseHar(harContents).catch((harParseError: HarParseError) => {
+        const { events, pinnedIds, pinColorsById } = await parseHar(harContents).catch((harParseError: HarParseError) => {
             // Log all suberrors, for easier reporting & debugging.
             // This does not include HAR data - only schema errors like
             // 'bodySize is missing' at 'entries[1].request'
@@ -783,7 +783,7 @@ export class EventsStore {
         this.eventQueue.push({
             type: 'queued-callback',
             cb: action(() => pinnedIds.forEach((id) => {
-                this.events.find(e => e.id === id)!.pinned = true;
+                this.events.find(e => e.id === id)!.pin(pinColorsById[id]);
             }))
         });
 

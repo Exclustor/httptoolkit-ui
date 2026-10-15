@@ -1,6 +1,6 @@
 import { expect } from '../../../test-setup';
 
-import { generateHar } from '../../../../src/model/http/har';
+import { generateHar, parseHar } from '../../../../src/model/http/har';
 import { getExchangeData } from '../../unit-test-helpers';
 
 describe('HAR generation', () => {
@@ -15,5 +15,41 @@ describe('HAR generation', () => {
 
         expect(har.log.entries.map(entry => entry.response.status))
             .to.deep.equal([403, 200]);
+    });
+
+    it('exports default pins as true, and coloured pins as their colour', async () => {
+        const defaultPinned = getExchangeData();
+        defaultPinned.pin();
+
+        const redPinned = getExchangeData();
+        redPinned.pin('red');
+
+        const unpinned = getExchangeData();
+
+        const har = await generateHar([defaultPinned, redPinned, unpinned]);
+
+        expect(har.log.entries.map(entry => entry._pinned))
+            .to.deep.equal([true, 'red', undefined]);
+    });
+});
+
+describe('HAR parsing', () => {
+    it('imports pin colours, treating legacy & unknown pin values as default pins', async () => {
+        const har = await generateHar([
+            getExchangeData(),
+            getExchangeData(),
+            getExchangeData(),
+            getExchangeData(),
+            getExchangeData()
+        ]);
+        har.log.entries[0]._pinned = 'red';
+        har.log.entries[1]._pinned = true; // As exported before pins had colours
+        har.log.entries[2]._pinned = 'not-a-pin-colour'; // E.g. from a newer version
+        har.log.entries[3]._pinned = 'toString'; // Inherited by every object, but not a colour
+
+        const { pinnedIds, pinColorsById } = await parseHar(har);
+
+        expect(pinnedIds.map(id => pinColorsById[id]))
+            .to.deep.equal(['red', undefined, undefined, undefined]);
     });
 });

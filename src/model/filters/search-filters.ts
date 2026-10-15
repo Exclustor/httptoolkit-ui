@@ -7,6 +7,7 @@ import { stringToBuffer } from '../../util/buffer';
 import { getStatusDocs, METHOD_NAMES } from '../http/http-docs';
 import { getReadableSize } from '../../util/buffer';
 import { EventCategories } from '../events/categorization';
+import { PinColor, PIN_COLOR_NAMES } from '../events/pin-colors';
 import { WebSocketStream } from '../websockets/websocket-stream';
 
 import {
@@ -399,20 +400,52 @@ class ErrorFilter extends Filter {
 
 class PinnedFilter extends Filter {
 
-    static filterSyntax = [new FixedStringSyntax("pinned")] as const;
+    // Separated out so we can do subparsing here ourselves
+    private static colorMatchSyntax = [
+        new FixedStringSyntax("="),
+        new StringOptionsSyntax(PIN_COLOR_NAMES)
+    ] as const;
+
+    static filterSyntax = [
+        new FixedStringSyntax("pinned"),
+        new OptionalSyntax<[string, PinColor]>(...PinnedFilter.colorMatchSyntax)
+    ] as const;
 
     static filterName = "pinned";
 
     static filterDescription(value: string) {
-        return "exchanges that are pinned";
+        // We have to manually parse optional parts unfortunately, since otherwise
+        // any half-optional matches are treated as non-matches and left undefined.
+        const [op, color] = tryParseFilterParts(
+            value.slice("pinned".length),
+            ...PinnedFilter.colorMatchSyntax
+        );
+
+        if (!op || !color) {
+            return "exchanges that are pinned";
+        } else {
+            return `exchanges pinned in ${color}`;
+        }
+    }
+
+    private expectedColor: PinColor | undefined;
+
+    constructor(filter: string) {
+        super(filter);
+        const [, [, color]] = parseFilter(PinnedFilter, filter);
+        this.expectedColor = color;
     }
 
     matches(event: ViewableEvent): boolean {
-        return event.pinned;
+        if (!event.pinned) return false;
+        if (!this.expectedColor) return true;
+        return event.pinColor === this.expectedColor;
     }
 
     toString() {
-        return `Pinned`;
+        return this.expectedColor
+            ? `Pinned ${_.startCase(this.expectedColor)}`
+            : `Pinned`;
     }
 }
 

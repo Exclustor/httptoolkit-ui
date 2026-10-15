@@ -51,6 +51,7 @@ export const ExchangeRow = inject('uiStore')(observer((p: {
         request,
         response,
         pinned,
+        pinColor,
         category
     } = exchange;
 
@@ -78,7 +79,7 @@ export const ExchangeRow = inject('uiStore')(observer((p: {
         {...p.rowProps}
         onContextMenu={contextMenuBuilder.getContextMenuCallback(exchange)}
     >
-        <RowPin aria-label={pinned ? 'Pinned' : undefined} pinned={pinned}/>
+        <RowPin aria-label={pinned ? 'Pinned' : undefined} pinned={pinned} pinColor={pinColor}/>
         <RowMarker role='gridcell' category={category} title={describeEventCategory(category)} />
         <Method role='gridcell' pinned={pinned}>{ request.method }</Method>
         <Status role='gridcell'>
