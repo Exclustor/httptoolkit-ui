@@ -122,6 +122,7 @@ import { faMobileAlt } from '@fortawesome/free-solid-svg-icons/faMobileAlt';
 import { faExpand } from '@fortawesome/free-solid-svg-icons/faExpand';
 import { faCompressArrowsAlt } from '@fortawesome/free-solid-svg-icons/faCompressArrowsAlt';
 import { faThumbtack } from '@fortawesome/free-solid-svg-icons/faThumbtack';
+import { faStickyNote } from '@fortawesome/free-solid-svg-icons/faStickyNote';
 import { faEye } from '@fortawesome/free-solid-svg-icons/faEye';
 import { faCaretDown } from '@fortawesome/free-solid-svg-icons/faCaretDown';
 import { faAlignLeft } from '@fortawesome/free-solid-svg-icons/faAlignLeft';
@@ -201,6 +202,7 @@ library.add(
     faExpand,
     faCompressArrowsAlt,
     faThumbtack,
+    faStickyNote,
     faEye,
     faCaretDown,
     faAlignLeft,

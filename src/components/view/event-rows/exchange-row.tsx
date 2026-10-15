@@ -29,6 +29,7 @@ function getExchangeStatus(exchange: HttpExchange): StatusValue {
 import {
     TrafficEventListRow,
     RowPin,
+    RowNote,
     RowMarker,
     Method,
     Status,
@@ -51,6 +52,7 @@ export const ExchangeRow = inject('uiStore')(observer((p: {
         request,
         response,
         pinned,
+        note,
         category
     } = exchange;
 
@@ -79,6 +81,7 @@ export const ExchangeRow = inject('uiStore')(observer((p: {
         onContextMenu={contextMenuBuilder.getContextMenuCallback(exchange)}
     >
         <RowPin aria-label={pinned ? 'Pinned' : undefined} pinned={pinned}/>
+        <RowNote aria-label={note ? 'Has a note' : undefined} note={note}/>
         <RowMarker role='gridcell' category={category} title={describeEventCategory(category)} />
         <Method role='gridcell' pinned={pinned}>{ request.method }</Method>
         <Status role='gridcell'>

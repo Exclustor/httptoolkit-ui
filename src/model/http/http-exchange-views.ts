@@ -129,6 +129,9 @@ export abstract class HttpExchangeViewBase extends HTKEventBase implements HttpE
     get pinned() { return this.downstream.pinned; }
     set pinned(value: boolean) { this.downstream.pinned = value; }
 
+    get note() { return this.downstream.note; }
+    set note(value: string) { this.downstream.note = value; }
+
     get hideErrors() { return this.downstream.hideErrors; }
     set hideErrors(value: boolean) { this.downstream.hideErrors = value; }
 

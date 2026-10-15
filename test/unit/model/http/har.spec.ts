@@ -1,6 +1,6 @@
 import { expect } from '../../../test-setup';
 
-import { generateHar } from '../../../../src/model/http/har';
+import { generateHar, parseHar } from '../../../../src/model/http/har';
 import { getExchangeData } from '../../unit-test-helpers';
 
 describe('HAR generation', () => {
@@ -15,5 +15,30 @@ describe('HAR generation', () => {
 
         expect(har.log.entries.map(entry => entry.response.status))
             .to.deep.equal([403, 200]);
+    });
+
+    it('exports event notes', async () => {
+        const notedExchange = getExchangeData();
+        notedExchange.note = 'Login request';
+
+        const har = await generateHar([notedExchange, getExchangeData()]);
+
+        expect(har.log.entries.map(entry => entry._note))
+            .to.deep.equal(['Login request', undefined]);
+    });
+});
+
+describe('HAR parsing', () => {
+    it('imports event notes', async () => {
+        const har = await generateHar([getExchangeData(), getExchangeData()]);
+        har.log.entries[1]._note = 'Login request';
+
+        const { events, notesById } = await parseHar(har);
+        const requestIds = events
+            .filter(event => event.type === 'request')
+            .map(event => event.event.id);
+
+        expect(requestIds.map(id => notesById[id]))
+            .to.deep.equal([undefined, 'Login request']);
     });
 });

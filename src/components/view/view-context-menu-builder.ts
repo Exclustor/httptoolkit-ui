@@ -36,6 +36,15 @@ export class ViewEventContextMenuBuilder {
         }
     ) {}
 
+    // The note option shown in every single-event menu:
+    private buildNoteOption(event: CollectedEvent): ContextMenuItem<any> {
+        return {
+            type: 'option',
+            label: event.note ? 'Edit Note...' : 'Add Note...',
+            callback: (data: CollectedEvent) => this.uiStore.openNoteEditor([data])
+        };
+    }
+
     getContextMenuCallback(event: CollectedEvent) {
         return (mouseEvent: React.MouseEvent) => {
             const { selectedEventIds } = this.uiStore;
@@ -62,6 +71,11 @@ export class ViewEventContextMenuBuilder {
                 type: 'option',
                 label: 'Toggle Pinning',
                 callback: () => this.callbacks.onPin()
+            },
+            {
+                type: 'option',
+                label: `Add Note to ${count} Event${count !== 1 ? 's' : ''}...`,
+                callback: () => this.uiStore.openNoteEditor(selectedEvents)
             },
             ...(httpCount > 0 ? [{
                 type: 'option' as const,
@@ -96,6 +110,7 @@ export class ViewEventContextMenuBuilder {
                 label: 'Toggle Pinning',
                 callback: action((data: HttpExchangeView) => { data.pinned = !data.pinned; })
             },
+            this.buildNoteOption(event),
             {
                 type: 'submenu',
                 label: 'Filter traffic like this',
@@ -207,6 +222,7 @@ export class ViewEventContextMenuBuilder {
                 label: 'Toggle Pinning',
                 callback: action((data: CollectedEvent) => { data.pinned = !data.pinned; })
             },
+            this.buildNoteOption(event),
             {
                 type: 'option',
                 label: 'Delete',

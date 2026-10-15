@@ -142,6 +142,40 @@ export const RowPin = styled(
     }
 `;
 
+export const RowNote = styled(
+    filterProps(Icon, 'note')
+).attrs((p: { note: string }) => ({
+    icon: ['fas', 'sticky-note'],
+    title: p.note ? `Note: ${p.note}` : ''
+}))`
+    font-size: 90%;
+    box-sizing: content-box;
+    background-color: ${p => p.theme.containerBackground};
+
+    /* Without this, 0 width notes create a large & invisible but still clickable icon */
+    overflow: hidden;
+
+    transition: width 0.1s, padding 0.1s, margin 0.1s;
+
+    ${(p: { note: string }) =>
+        p.note
+        ? `
+            width: auto;
+            padding: 8px 7px;
+            && { margin-right: -3px; }
+        `
+        : `
+            padding: 8px 0;
+            width: 0 !important;
+            margin: 0 !important;
+
+            > path {
+                display: none;
+            }
+        `
+    }
+`;
+
 export const MarkerHeader = styled.div<{ role: 'columnheader' }>`
     flex-basis: 10px;
     flex-shrink: 0;

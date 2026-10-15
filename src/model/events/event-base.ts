@@ -52,4 +52,10 @@ export abstract class HTKEventBase {
     public get pinned(): boolean { return this._pinned; }
     public set pinned(value: boolean) { this._pinned = value; }
 
+    // A free-text note, manually attached to this event by the user in the UI.
+    @observable
+    private _note: string = '';
+    public get note(): string { return this._note; }
+    public set note(value: string) { this._note = value; }
+
 }

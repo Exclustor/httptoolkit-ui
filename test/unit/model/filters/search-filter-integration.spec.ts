@@ -358,6 +358,23 @@ describe("Search filter model integration test:", () => {
         });
     });
 
+    describe("Note searching", () => {
+        it("should match note content in free-text searches", () => {
+            const filter = new StringFilter("interesting");
+
+            const exampleEvents = [
+                getExchangeData({ statusCode: 200, path: '/dull' }),
+                getExchangeData({ statusCode: 404, path: '/other' })
+            ];
+
+            exampleEvents[1].note = 'Very Interesting!';
+
+            const matchedEvents = exampleEvents.filter(e => filter.matches(e));
+            expect(matchedEvents.length).to.equal(1);
+            expect((matchedEvents[0] as SuccessfulExchange).response.statusCode).to.equal(404);
+        });
+    });
+
     describe("Method filters", () => {
         it("should correctly filter for the given method", () => {
             const filter = createFilter("method=POST");

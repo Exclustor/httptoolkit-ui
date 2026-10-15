@@ -8,6 +8,7 @@ import { Ctrl } from '../../../util/ui';
 
 import { RulesStore } from '../../../model/rules/rules-store';
 import { AccountStore } from '../../../model/account/account-store';
+import { UiStore } from '../../../model/ui/ui-store';
 
 import { HEADER_FOOTER_HEIGHT } from '../view-event-list-footer';
 import { ProPill } from '../../account/pro-placeholders';
@@ -63,6 +64,19 @@ const PinButton = styled(observer((p: {
     `}
 `;
 
+const NoteButton = observer((p: {
+    hasNote: boolean,
+    onClick: () => void
+}) => <IconButton
+    icon={['fas', 'sticky-note']}
+    title={
+        p.hasNote
+        ? "Edit this exchange's note"
+        : 'Add a note to this exchange'
+    }
+    onClick={p.onClick}
+/>);
+
 const DeleteButton = observer((p: {
     pinned: boolean,
     onClick: () => void
@@ -114,10 +128,11 @@ const ProSeparator = styled(inject('accountStore')((p: {
     margin-left: 40px;
 `;
 
-export const HttpDetailsFooter = inject('rulesStore')(
+export const HttpDetailsFooter = inject('rulesStore', 'uiStore')(
     observer(
         (props: {
             rulesStore?: RulesStore,
+            uiStore?: UiStore,
 
             event: ViewableEvent,
             onDelete: (event: CollectedEvent) => void,
@@ -128,7 +143,7 @@ export const HttpDetailsFooter = inject('rulesStore')(
             navigate: (url: string) => void
         }) => {
             const { event } = props;
-            const { pinned } = event;
+            const { pinned, note } = event;
 
             // Some actions require the collected event, not just the
             // current view.
@@ -145,6 +160,10 @@ export const HttpDetailsFooter = inject('rulesStore')(
                     onClick={action(() => {
                         event.pinned = !event.pinned;
                     })}
+                />
+                <NoteButton
+                    hasNote={!!note}
+                    onClick={() => props.uiStore!.openNoteEditor([event])}
                 />
                 <DeleteButton
                     pinned={pinned}

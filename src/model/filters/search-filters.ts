@@ -109,7 +109,8 @@ export class StringFilter extends Filter {
     matches(event: ViewableEvent): boolean {
         if (this.filter === '') return true;
         const filter = this.filter.toLocaleLowerCase();
-        return event.searchIndex.includes(filter);
+        return event.searchIndex.includes(filter) ||
+            (!!event.note && event.note.toLocaleLowerCase().includes(filter));
     }
 
     toString() {

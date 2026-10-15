@@ -81,6 +81,7 @@ export interface HarEntry extends HarFormat.Entry {
         timestamp?: number;
     } | 'aborted'
     _pinned?: true;
+    _note?: string;
 }
 
 const compareHarEntryStartTimes = (
@@ -449,6 +450,7 @@ async function generateHarHttpEntry(
             receive: Math.max(receiveDuration, 0)
         },
         _pinned: exchange.pinned || undefined,
+        _note: exchange.note || undefined,
 
         ...(exchange.isWebSocket() ? {
             _resourceType: 'websocket',
@@ -516,6 +518,7 @@ function generateHarTlsError(event: FailedTlsConnection): HarTlsErrorEntry {
 export interface ParsedHar {
     events: QueuedEvent[];
     pinnedIds: string[];
+    notesById: { [id: string]: string };
 };
 
 const sumTimings = (
@@ -535,6 +538,7 @@ export async function parseHar(harContents: unknown): Promise<ParsedHar> {
 
     const events: QueuedEvent[] = [];
     const pinnedIds: string[] = []
+    const notesById: ParsedHar['notesById'] = {};
 
     har.log.entries
     .sort(compareHarEntryStartTimes)
@@ -626,6 +630,8 @@ export async function parseHar(harContents: unknown): Promise<ParsedHar> {
         }
 
         if (entry._pinned) pinnedIds.push(id);
+
+        if (entry._note) notesById[id] = entry._note;
     });
 
     if (har.log._tlsErrors) {
@@ -647,7 +653,7 @@ export async function parseHar(harContents: unknown): Promise<ParsedHar> {
         })));
     }
 
-    return { events, pinnedIds };
+    return { events, pinnedIds, notesById };
 }
 
 // Mutatively cleans & returns the HAR, to tidy up irrelevant but potentially
